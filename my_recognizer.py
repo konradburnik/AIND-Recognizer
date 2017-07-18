@@ -18,8 +18,35 @@ def recognize(models: dict, test_set: SinglesData):
            ['WORDGUESS0', 'WORDGUESS1', 'WORDGUESS2',...]
    """
     warnings.filterwarnings("ignore", category=DeprecationWarning)
+
     probabilities = []
     guesses = []
-    # TODO implement the recognizer
-    # return probabilities, guesses
-    raise NotImplementedError
+
+    test_words_with_lengths = test_set.get_all_Xlengths().values()
+
+    for test_word, lengths in test_words_with_lengths:
+
+            best_score = float("-inf")
+            best_guess = None
+            best_log_likelihood = {}
+
+            # for given test word iterate through all the trained words
+            # and see which one's model fits best to this test word
+            for trained_word, hmm_model in models.items():
+                try:
+                    score = hmm_model.score(test_word, lengths)
+                    best_log_likelihood[trained_word] = best_score
+                except:
+                    score = float("-inf")
+                    best_log_likelihood[trained_word] = score
+
+                if score > best_score:
+                    best_score = score
+                    best_guess = trained_word
+
+            # for this test word store the best guess and proceed to the next one
+            guesses.append(best_guess)
+            # store also the log-likelihoods all our guesses (including the best one)
+            probabilities.append(best_log_likelihood)
+
+    return probabilities, guesses
